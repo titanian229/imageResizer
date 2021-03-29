@@ -4,6 +4,7 @@
   "description": "Image resizer",
   "main": "main.js",
   "scripts": {
+    "start": "node main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +16,10 @@
   "bugs": {
     "url": "https://github.com/titanian229/ImageResizer/issues"
   },
-  "homepage": "https://github.com/titanian229/ImageResizer#readme"
+  "homepage": "https://github.com/titanian229/ImageResizer#readme",
+  "dependencies": {
+    "image-size": "^0.9.7",
+    "inquirer": "^8.0.0",
+    "sharp": "^0.28.0"
+  }
 }
