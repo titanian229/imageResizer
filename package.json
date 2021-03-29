@@ -1,0 +1,19 @@
+{
+  "name": "imageresizer",
+  "version": "1.0.0",
+  "description": "Image resizer",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/titanian229/ImageResizer.git"
+  },
+  "author": "James Lee",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/titanian229/ImageResizer/issues"
+  },
+  "homepage": "https://github.com/titanian229/ImageResizer#readme"
+}
