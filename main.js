@@ -19,7 +19,7 @@ const resizeImage = async (imgInput) => {
         .withMetadata()
         .resize({
             fit: sharp.fit.contain,
-            [imgInput.longestDimension]: 1000,
+            [imgInput.longestDimension]: 1200,
         })
         .toFile(path.join(RESIZED_DIR, imgInput.filename));
 };
