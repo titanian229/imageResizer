@@ -15,7 +15,7 @@ const locationChecker = (location) => {
 };
 
 const resizeImage = async (imgInput) => {
-    let resizedImage = await sharp(path.join(imgInput.directoryLocation, imgInput.filename))
+    return sharp(path.join(imgInput.directoryLocation, imgInput.filename))
         .withMetadata()
         .resize({
             fit: sharp.fit.contain,
@@ -41,87 +41,58 @@ async function mainApp() {
         },
     ]);
 
-    if (!fs.existsSync(RESIZED_DIR)) fs.mkdirSync(RESIZED_DIR)
+    if (!fs.existsSync(RESIZED_DIR)) fs.mkdirSync(RESIZED_DIR);
 
     let directoryLocation = menuAction.directoryLocation;
     directoryLocation = directoryLocation.replace(/\"/g, ""); //removes quotation marks
-    // let fileLocation = 'C:\\MAMP\\htdocs\\baf3m_html\\lessons\\baf3m_u2la6.html';
 
     const ignoreList = ["mindson", "consolidation", "action", "learninggoals", "ilo"];
 
     directoryLocation = path.normalize(directoryLocation);
-    let imagesResized = [];
+    // let imagesResized = [];
 
-    fs.readdir(directoryLocation,   (err, files) => {
-        if (err) {
-            return console.log("Unable to scan directory: " + err);
-        }
-
-        files.forEach((filename) => {
-            // console.log(file);
-
-            const fileAttr = path.parse(filename);
-            //checking jpg
-            if (
-                !fileAttr.ext.toLowerCase().includes("jpg") &&
-                !fileAttr.ext.toLowerCase().includes("jpeg") &&
-                !fileAttr.ext.toLowerCase().includes("png")
-            ) {
-                // console.log("File is not a jpg", file);
-                return;
-            }
-
-            //checking ignore list
-            if (ignoreList.some((ignoreItem) => fileAttr.name.toLowerCase().includes(ignoreItem))) {
-                // console.log("Item to be ignored found", file);
-                return;
-            }
-
-            //Checking dimensions
-            let imgDimensions;
-            try {
-                imgDimensions = sizeOf(path.resolve(directoryLocation, filename));
-                console.log(imgDimensions);
-            } catch (err) {
-                console.log("Error with image file", filename, err);
-                return;
-            }
-
-            if (imgDimensions.width > 2000 || imgDimensions.length > 2000) {
-                //image to be resized
-                console.log("Resizing image", filename);
-                imagesResized.push(filename);
-
-                await resizeImage({
-                    directoryLocation,
-                    filename,
-                    longestDimension: imgDimensions.width > imgDimensions.length ? "width" : "length",
-                });
-            }
-        });
+    const images = fs.readdirSync(directoryLocation).filter((image) => {
+        const fileAttr = path.parse(image);
+        //filtering out names in the ignore list and files that aren't jpg or png
+        return (
+            (fileAttr.ext.toLowerCase().includes("jpg") ||
+                fileAttr.ext.toLowerCase().includes("jpeg") ||
+                fileAttr.ext.toLowerCase().includes("png")) &&
+            !ignoreList.some((ignoreItem) => fileAttr.name.toLowerCase().includes(ignoreItem))
+        );
     });
 
-    // // Final confirmation
-    // const finalConfirm = await inquirer.prompt({
-    //     type: "confirm",
-    //     name: "confirmation",
-    //     message: "Confirm overwriting your file?",
-    // });
+    imagesToResize = images
+        .map((image) => {
+            let imgDimensions;
+            try {
+                imgDimensions = sizeOf(path.resolve(directoryLocation, image));
+            } catch (err) {
+                console.log("Error with image file", image, err);
+                return null;
+            }
 
-    // if (!finalConfirm.confirmation) {
-    //     return;
-    // }
+            if (imgDimensions.width > 2000 || imgDimensions.height > 2000) {
+                return {
+                    directoryLocation,
+                    filename: image,
+                    longestDimension: imgDimensions.width > imgDimensions.height ? "width" : "height",
+                    imgDimensions
+                };
+            }
 
-    // //Writing backup
-    // if (!fs.existsSync(BACKUP_DIR)) {
-    //     fs.mkdirSync(BACKUP_DIR);
-    // }directoryLocation
-    // fs.copyFileSync(fileLocation, path.join(BACKUP_DIR, path.parse(directoryLocation).name + ".html"));
-    // // fs.writeFileSync(path.join(BACKUP_DIR, path.parse(fileLocation).name + '.html'), fileContents.join('\n\r'));
+            return null;
+        })
+        .filter((image) => image !== null);
 
-    // fs.writeFileSync(fileLocation, newFileContents.join("\n"));
+    console.log("Images to be resized: \n\n", imagesToResize.map(image => ({filename: image.filename, dimensions: image.imgDimensions})))
 
-    console.log("IT HAS BEEN DONE.");
+    console.log("Resizing images")
+
+    await Promise.all(imagesToResize.map(image => resizeImage(image)))
+
+    console.log("Images have been resized")
+
 }
 
 mainApp();
