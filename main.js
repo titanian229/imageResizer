@@ -26,7 +26,7 @@ const resizeImage = async (imgInput) => {
 
 async function mainApp() {
     console.log(
-        "Image Resizer\n\nResizes images to have no greater dimension than 1000 px, excluding predetermined and user set exception files."
+        "Image Resizer\n\nResizes images to have no greater dimension than 1200 px, excluding predetermined and user set exception files."
     );
 
     const menuAction = await inquirer.prompt([
@@ -72,7 +72,7 @@ async function mainApp() {
                 return null;
             }
 
-            if (imgDimensions.width > 2000 || imgDimensions.height > 2000) {
+            if (imgDimensions.width > 1200 || imgDimensions.height > 1200) {
                 return {
                     directoryLocation,
                     filename: image,
