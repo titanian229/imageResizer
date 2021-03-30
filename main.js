@@ -24,6 +24,19 @@ const resizeImage = async (imgInput) => {
         .toFile(path.join(RESIZED_DIR, imgInput.filename));
 };
 
+const getAndFilterImages = (directoryLocation, ignoreList) => {
+    return fs.readdirSync(directoryLocation).filter((image) => {
+        const fileAttr = path.parse(image);
+        //filtering out names in the ignore list and files that aren't jpg or png
+        return (
+            (fileAttr.ext.toLowerCase().includes("jpg") ||
+                fileAttr.ext.toLowerCase().includes("jpeg") ||
+                fileAttr.ext.toLowerCase().includes("png")) &&
+            !ignoreList.some((ignoreItem) => fileAttr.name.toLowerCase().includes(ignoreItem))
+        );
+    });
+};
+
 async function mainApp() {
     console.log(
         "Image Resizer\n\nResizes images to have no greater dimension than 1200 px, excluding predetermined and user set exception files."
@@ -34,7 +47,7 @@ async function mainApp() {
             type: "input",
             name: "directoryLocation",
             message:
-                'Please enter the location of the folder containing images you wish to parse:\nEx: "C:\\MAMP\\htdocs\\baf3m_html\\assets\\img"\n',
+                'Please enter the location of the folder containing images you wish to parse, or the course repo itself:\nEx: "C:\\MAMP\\htdocs\\baf3m_html\\assets\\img"\n',
             validate: function (inp) {
                 return locationChecker(inp);
             },
@@ -50,17 +63,14 @@ async function mainApp() {
 
     directoryLocation = path.normalize(directoryLocation);
     // let imagesResized = [];
+    let images = getAndFilterImages(directoryLocation, ignoreList);
 
-    const images = fs.readdirSync(directoryLocation).filter((image) => {
-        const fileAttr = path.parse(image);
-        //filtering out names in the ignore list and files that aren't jpg or png
-        return (
-            (fileAttr.ext.toLowerCase().includes("jpg") ||
-                fileAttr.ext.toLowerCase().includes("jpeg") ||
-                fileAttr.ext.toLowerCase().includes("png")) &&
-            !ignoreList.some((ignoreItem) => fileAttr.name.toLowerCase().includes(ignoreItem))
-        );
-    });
+    if (images.length < 2) {
+        directoryLocation = path.join(directoryLocation, "assets", "img");
+        if (fs.existsSync(directoryLocation)) {
+            images = getAndFilterImages(directoryLocation, ignoreList);
+        }
+    }
 
     imagesToResize = images
         .map((image) => {
@@ -77,7 +87,7 @@ async function mainApp() {
                     directoryLocation,
                     filename: image,
                     longestDimension: imgDimensions.width > imgDimensions.height ? "width" : "height",
-                    imgDimensions
+                    imgDimensions,
                 };
             }
 
@@ -85,14 +95,26 @@ async function mainApp() {
         })
         .filter((image) => image !== null);
 
-    console.log("Images to be resized: \n\n", imagesToResize.map(image => ({filename: image.filename, dimensions: image.imgDimensions})))
+    if (imagesToResize.length === 0) {
+        console.log("No images in need of resizing");
+        return;
+    }
 
-    console.log("Resizing images")
+    if (imagesToResize.length > 300){
+        console.log("There are over 300 images to be resized, double check this is the correct directory and message me if it is please.")
+        return
+    }
 
-    await Promise.all(imagesToResize.map(image => resizeImage(image)))
+    console.log(
+        "Images to be resized: \n\n",
+        imagesToResize.map((image) => ({ filename: image.filename, dimensions: image.imgDimensions }))
+    );
 
-    console.log("Images have been resized")
+    console.log("Resizing images");
 
+    await Promise.all(imagesToResize.map((image) => resizeImage(image)));
+
+    console.log("Images have been resized and placed in the output folder.  Drag them into the img folder within the course repo to replace the originals.");
 }
 
 mainApp();
