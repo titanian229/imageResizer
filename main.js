@@ -52,7 +52,7 @@ async function mainApp() {
     directoryLocation = path.normalize(directoryLocation);
     let imagesResized = [];
 
-    fs.readdir(directoryLocation, function (err, files) {
+    fs.readdir(directoryLocation,   (err, files) => {
         if (err) {
             return console.log("Unable to scan directory: " + err);
         }
